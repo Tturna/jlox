@@ -4,6 +4,18 @@ import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
 
+// Recursive descent parser
+//
+// Expression evaluation:
+// Calls expression() which chain-calls all the expression subtype functions in presedence order.
+// Each function corresponds to an expression type.
+// Each function checks whether the current token is a certain type of expression
+// in presedence order.
+// Each function returns a part of an expression.
+// The function chain is effectively a tree because each expression type in the
+// syntax tree has its own function that checks for the type.
+// The system recursively evaluates parts of an expression and forms
+// one big expression that is returned.
 class Parser {
     private static class ParseError extends RuntimeException {}
 
