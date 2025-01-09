@@ -6,8 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 
 // AST = Abstract Syntax Tree
-// This script generates code that defines valid language structures like expressions.
-// These expressions are used by the parser to form a syntax tree.
+// This script generates code that defines valid language structures like expressions and statements.
+// These expressions and statements are used by the parser to form a syntax tree from tokens.
 public class GenerateAst {
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
@@ -21,6 +21,11 @@ public class GenerateAst {
             "Grouping : Expression expression",
             "Literal  : Object value",
             "Unary    : Token operator, Expression right"
+        ));
+
+        defineAst(outDir, "Statement", Arrays.asList(
+            "Expr : Expression expression",
+            "Print      : Expression expression"
         ));
     }
 
