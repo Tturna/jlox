@@ -92,6 +92,26 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
         stmt.accept(this);
     }
 
+    void executeBlock(List<Statement> statements, Environment environment) {
+        Environment previous = this.environment;
+
+        try {
+            this.environment = environment;
+
+            for (Statement statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            this.environment = previous;
+        }
+    }
+
+    @Override
+    public Void visitBlockStatement(Statement.Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
+        return null;
+    }
+
     @Override
     public Void visitExprStatement(Statement.Expr stmt) {
         evaluate(stmt.expression);

@@ -53,7 +53,7 @@ class Parser {
 
     private Statement statement() {
         if (match(PRINT)) return printStatement();
-
+        if (match(LEFT_BRACE)) return new Statement.Block(block());
         return expressionStatement();
     }
 
@@ -79,6 +79,17 @@ class Parser {
         Expression expr = expression();
         consume(SEMICOLON, "Expect ';' after expression.");
         return new Statement.Expr(expr);
+    }
+
+    private List<Statement> block() {
+        List<Statement> statements = new ArrayList<>();
+
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
     }
 
     private Expression assignment() {
