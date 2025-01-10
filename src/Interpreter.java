@@ -3,6 +3,10 @@ package com.craftinginterpreters.lox;
 import java.util.List;
 
 class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void> {
+
+    // stores variables and lets you do stuff like variable declaration
+    private Environment environment = new Environment();
+
     @Override
     public Object visitLiteralExpression(Expression.Literal expr) {
         return expr.value;
@@ -22,6 +26,18 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
 
         // unreachable
         return null;
+    }
+
+    @Override
+    public Object visitVariableExpression(Expression.Variable expr) {
+        return environment.get(expr.name);
+    }
+
+    @Override
+    public Object visitAssignExpression(Expression.Assign expr) {
+        Object value = evaluate(expr.value);
+        environment.assign(expr.name, value);
+        return value;
     }
 
     private void checkNumberOperand(Token operator, Object operand) {
@@ -86,6 +102,17 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
     public Void visitPrintStatement(Statement.Print stmt) {
         Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Void visitVarStatement(Statement.Var stmt) {
+        Object value = null;
+        if (stmt.initializer != null) {
+            value = evaluate(stmt.initializer);
+        }
+
+        environment.define(stmt.name.lexeme, value);
         return null;
     }
 

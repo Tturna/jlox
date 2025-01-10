@@ -17,15 +17,18 @@ public class GenerateAst {
 
         String outDir = args[0];
         defineAst(outDir, "Expression", Arrays.asList(
+            "Assign   : Token name, Expression value",
             "Binary   : Expression left, Token operator, Expression right",
             "Grouping : Expression expression",
             "Literal  : Object value",
-            "Unary    : Token operator, Expression right"
+            "Unary    : Token operator, Expression right",
+            "Variable : Token name"
         ));
 
         defineAst(outDir, "Statement", Arrays.asList(
-            "Expr : Expression expression",
-            "Print      : Expression expression"
+            "Expr    : Expression expression",
+            "Print   : Expression expression",
+            "Var     : Token name, Expression initializer"
         ));
     }
 
