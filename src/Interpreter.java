@@ -13,6 +13,26 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
     }
 
     @Override
+    public Object visitLogicalExpression(Expression.Logical expr) {
+        Object left = evaluate(expr.left);
+
+        if (expr.operator.type == TokenType.OR) {
+            // "or" operator short circuit
+            if (isTruthy(left)) return left;
+        } else {
+            // "and" operator short circuit
+            if (!isTruthy(left)) return left;
+        }
+
+        return evaluate(expr.right);
+
+        // Notice that this doesn't evaluate to a boolean necessarily.
+        // It just returns the value with "appropriate truthiness".
+        // ("hi" or 2) returns "hi" (short circuit because the string is truthy)
+        // (nil or "yes") returns "yes"
+    }
+
+    @Override
     public Object visitUnaryExpression(Expression.Unary expr) {
         Object right = evaluate(expr.right);
 
@@ -119,6 +139,16 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
     }
 
     @Override
+    public Void visitIfStatement(Statement.If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+        }
+        return null;
+    }
+
+    @Override
     public Void visitPrintStatement(Statement.Print stmt) {
         Object value = evaluate(stmt.expression);
         System.out.println(stringify(value));
@@ -133,6 +163,15 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
         }
 
         environment.define(stmt.name.lexeme, value);
+        return null;
+    }
+
+    @Override
+    public Void visitWhileStatement(Statement.While stmt) {
+        while (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.body);
+        }
+
         return null;
     }
 

@@ -6,8 +6,10 @@ abstract class Statement {
     interface Visitor<R> {
         R visitBlockStatement(Block statement);
         R visitExprStatement(Expr statement);
+        R visitIfStatement(If statement);
         R visitPrintStatement(Print statement);
         R visitVarStatement(Var statement);
+        R visitWhileStatement(While statement);
     }
   static class Block extends Statement {
     Block(List<Statement> statements) {
@@ -32,6 +34,22 @@ abstract class Statement {
     }
 
     final Expression expression;
+  }
+  static class If extends Statement {
+    If(Expression condition, Statement thenBranch, Statement elseBranch) {
+      this.condition = condition;
+      this.thenBranch = thenBranch;
+      this.elseBranch = elseBranch;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+        return visitor.visitIfStatement(this);
+    }
+
+    final Expression condition;
+    final Statement thenBranch;
+    final Statement elseBranch;
   }
   static class Print extends Statement {
     Print(Expression expression) {
@@ -58,6 +76,20 @@ abstract class Statement {
 
     final Token name;
     final Expression initializer;
+  }
+  static class While extends Statement {
+    While(Expression condition, Statement body) {
+      this.condition = condition;
+      this.body = body;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+        return visitor.visitWhileStatement(this);
+    }
+
+    final Expression condition;
+    final Statement body;
   }
 
     abstract <R> R accept(Visitor<R> visitor);

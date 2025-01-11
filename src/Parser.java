@@ -1,6 +1,7 @@
 package com.craftinginterpreters.lox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
@@ -52,9 +53,80 @@ class Parser {
     }
 
     private Statement statement() {
+        if (match(FOR)) return forStatement();
+        if (match(IF)) return ifStatement();
         if (match(PRINT)) return printStatement();
+        if (match(WHILE)) return whileStatement();
         if (match(LEFT_BRACE)) return new Statement.Block(block());
         return expressionStatement();
+    }
+
+    private Statement forStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+        Statement initializer;
+        if (match(SEMICOLON)) {
+            initializer = null;
+        } else if (match(VAR)) {
+            initializer = varDeclaration();
+        } else {
+            initializer = expressionStatement();
+        }
+
+        Expression condition = null;
+        if (!check(SEMICOLON)) {
+            condition = expression();
+        }
+
+        consume(SEMICOLON, "Expect ';' after loop condition.");
+
+        Expression increment = null;
+        if (!check(RIGHT_PAREN)) {
+            increment = expression();
+        }
+
+        consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+        Statement body = statement();
+
+        // desugaring the for-loop into a while-loop
+
+        // add increment logic to the end of the body
+        if (increment != null) {
+            body = new Statement.Block(
+                Arrays.asList(
+                    body,
+                    new Statement.Expr(increment)
+                )
+            );
+        }
+
+        if (condition == null) {
+            condition = new Expression.Literal(true);
+        }
+
+        body = new Statement.While(condition, body);
+
+        // make the whole statement into a block that executes the initializer before
+        // the loop itself
+        if (initializer != null) {
+            body = new Statement.Block(Arrays.asList(initializer, body));
+        }
+
+        return body;
+    }
+
+    private Statement ifStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'if'.");
+        Expression condition = expression();
+        consume(RIGHT_PAREN, "Expect ')' after if condition.");
+
+        Statement thenBranch = statement();
+        Statement elseBranch = null;
+        if (match(ELSE)) {
+            elseBranch = statement();
+        }
+
+        return new Statement.If(condition, thenBranch, elseBranch);
     }
 
     private Statement printStatement() {
@@ -75,6 +147,15 @@ class Parser {
         return new Statement.Var(name, initializer);
     }
 
+    private Statement whileStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'while'.");
+        Expression condition = expression();
+        consume(RIGHT_PAREN, "Expect ')' after condition.");
+        Statement body = statement();
+
+        return new Statement.While(condition, body);
+    }
+
     private Statement expressionStatement() {
         Expression expr = expression();
         consume(SEMICOLON, "Expect ';' after expression.");
@@ -93,7 +174,7 @@ class Parser {
     }
 
     private Expression assignment() {
-        Expression expr = equality();
+        Expression expr = or();
 
         if (match(EQUAL)) {
             Token equals = previous();
@@ -105,6 +186,30 @@ class Parser {
             }
 
             error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    private Expression or() {
+        Expression expr = and();
+
+        while (match(OR)) {
+            Token operator = previous();
+            Expression right = and();
+            expr = new Expression.Logical(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expression and() {
+        Expression expr = equality();
+
+        while (match(AND)) {
+            Token operator = previous();
+            Expression right = equality();
+            expr = new Expression.Logical(expr, operator, right);
         }
 
         return expr;
