@@ -180,6 +180,14 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
     }
 
     @Override
+    public Void visitReturnStatement(Statement.Return stmt) {
+        Object value = null;
+        if (stmt.value != null) value = evaluate(stmt.value);
+
+        throw new Return(value);
+    }
+
+    @Override
     public Void visitVarStatement(Statement.Var stmt) {
         Object value = null;
         if (stmt.initializer != null) {
