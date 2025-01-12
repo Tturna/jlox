@@ -6,6 +6,7 @@ abstract class Expression {
     interface Visitor<R> {
         R visitAssignExpression(Assign expression);
         R visitBinaryExpression(Binary expression);
+        R visitCallExpression(Call expression);
         R visitGroupingExpression(Grouping expression);
         R visitLiteralExpression(Literal expression);
         R visitLogicalExpression(Logical expression);
@@ -41,6 +42,22 @@ abstract class Expression {
     final Expression left;
     final Token operator;
     final Expression right;
+  }
+  static class Call extends Expression {
+    Call(Expression callee, Token closingParenthesis, List<Expression> arguments) {
+      this.callee = callee;
+      this.closingParenthesis = closingParenthesis;
+      this.arguments = arguments;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+        return visitor.visitCallExpression(this);
+    }
+
+    final Expression callee;
+    final Token closingParenthesis;
+    final List<Expression> arguments;
   }
   static class Grouping extends Expression {
     Grouping(Expression expression) {
