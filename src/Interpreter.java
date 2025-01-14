@@ -66,6 +66,11 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
     }
 
     @Override
+    public Object visitThisExpression(Expression.This expr) {
+        return lookUpVariable(expr.keyword, expr);
+    }
+
+    @Override
     public Object visitUnaryExpression(Expression.Unary expr) {
         Object right = evaluate(expr.right);
 
@@ -185,6 +190,10 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
         return null;
     }
 
+    // When parsing a class, the class node will consume all the methods inside.
+    // That's why after interpreting a class node, the methods will not be interpreted
+    // separately. After interpreting the class node, the entire class declaration
+    // will be interpreted.
     @Override
     public Void visitClassStatement(Statement.Class stmt) {
         environment.define(stmt.name.lexeme, null);

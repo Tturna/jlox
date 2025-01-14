@@ -11,12 +11,22 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
     // The boolean determines whether the variable's initializer has been resolved.
     // I guess this is a variable map then?
     private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+
+    // These enums are used to track whether resolution is currently happening inside
+    // functions or classes. This info is used to determine whether keywords like
+    // "return" and "this" are used correctly.
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
 
     private enum FunctionType {
         NONE,
         FUNCTION,
         METHOD
+    }
+
+    private enum ClassType {
+        NONE,
+        CLASS
     }
 
     Resolver(Interpreter interpreter) {
@@ -96,13 +106,22 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
 
     @Override
     public Void visitClassStatement(Statement.Class stmt) {
+        ClassType enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+
         declare(stmt.name);
         define(stmt.name);
+
+        beginScope();
+        scopes.peek().put("this", true);
 
         for (Statement.Function method : stmt.methods) {
             FunctionType declaration = FunctionType.METHOD;
             resolveFunction(method, declaration);
         }
+
+        endScope();
+        currentClass = enclosingClass;
 
         return null;
     }
@@ -220,6 +239,17 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
     public Void visitSetExpression(Expression.Set expr) {
         resolve(expr.value);
         resolve(expr.object);
+        return null;
+    }
+
+    @Override
+    public Void visitThisExpression(Expression.This expr) {
+        if (currentClass == ClassType.NONE) {
+            Lox.error(expr.keyword, "Can't use 'this' outside of a class.");
+            return null;
+        }
+
+        resolveLocal(expr, expr.keyword);
         return null;
     }
 

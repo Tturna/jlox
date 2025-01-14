@@ -372,6 +372,8 @@ class Parser {
             return new Expression.Literal(previous().literal);
         }
 
+        if (match(THIS)) return new Expression.This(previous());
+
         if (match(IDENTIFIER)) {
             return new Expression.Variable(previous());
         }

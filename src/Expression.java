@@ -12,6 +12,7 @@ abstract class Expression {
         R visitLiteralExpression(Literal expression);
         R visitLogicalExpression(Logical expression);
         R visitSetExpression(Set expression);
+        R visitThisExpression(This expression);
         R visitUnaryExpression(Unary expression);
         R visitVariableExpression(Variable expression);
     }
@@ -130,6 +131,18 @@ abstract class Expression {
     final Expression object;
     final Token name;
     final Expression value;
+  }
+  static class This extends Expression {
+    This(Token keyword) {
+      this.keyword = keyword;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+        return visitor.visitThisExpression(this);
+    }
+
+    final Token keyword;
   }
   static class Unary extends Expression {
     Unary(Token operator, Expression right) {
