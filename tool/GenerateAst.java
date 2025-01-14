@@ -20,9 +20,11 @@ public class GenerateAst {
             "Assign   : Token name, Expression value",
             "Binary   : Expression left, Token operator, Expression right",
             "Call     : Expression callee, Token closingParenthesis, List<Expression> arguments",
+            "Get      : Expression object, Token name", // property access
             "Grouping : Expression expression",
             "Literal  : Object value",
             "Logical  : Expression left, Token operator, Expression right",
+            "Set      : Expression object, Token name, Expression value", // property assignment
             "Unary    : Token operator, Expression right",
             "Variable : Token name"
         ));

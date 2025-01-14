@@ -53,6 +53,19 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
     }
 
     @Override
+    public Object visitSetExpression(Expression.Set expr) {
+        Object object = evaluate(expr.object);
+
+        if (!(object instanceof LoxInstance)) {
+            throw new RuntimeError(expr.name, "Only instances have fields.");
+        }
+
+        Object value = evaluate(expr.value);
+        ((LoxInstance)object).set(expr.name, value);
+        return value;
+    }
+
+    @Override
     public Object visitUnaryExpression(Expression.Unary expr) {
         Object right = evaluate(expr.right);
 
@@ -175,7 +188,14 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
     @Override
     public Void visitClassStatement(Statement.Class stmt) {
         environment.define(stmt.name.lexeme, null);
-        LoxClass klass = new LoxClass(stmt.name.lexeme);
+
+        Map<String, LoxFunction> methods = new HashMap<>();
+        for (Statement.Function method : stmt.methods) {
+            LoxFunction function = new LoxFunction(method, environment);
+            methods.put(method.name.lexeme, function);
+        }
+
+        LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
         environment.assign(stmt.name, klass);
         return null;
     }
@@ -304,6 +324,16 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
         }
 
         return function.call(this, arguments);
+    }
+
+    @Override
+    public Object visitGetExpression(Expression.Get expr) {
+        Object object = evaluate(expr.object);
+        if (object instanceof LoxInstance) {
+            return ((LoxInstance)object).get(expr.name);
+        }
+
+        throw new RuntimeError(expr.name, "Only instances have properties.");
     }
 
     void interpret(List<Statement> statements) {

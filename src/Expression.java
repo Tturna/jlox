@@ -7,9 +7,11 @@ abstract class Expression {
         R visitAssignExpression(Assign expression);
         R visitBinaryExpression(Binary expression);
         R visitCallExpression(Call expression);
+        R visitGetExpression(Get expression);
         R visitGroupingExpression(Grouping expression);
         R visitLiteralExpression(Literal expression);
         R visitLogicalExpression(Logical expression);
+        R visitSetExpression(Set expression);
         R visitUnaryExpression(Unary expression);
         R visitVariableExpression(Variable expression);
     }
@@ -59,6 +61,20 @@ abstract class Expression {
     final Token closingParenthesis;
     final List<Expression> arguments;
   }
+  static class Get extends Expression {
+    Get(Expression object, Token name) {
+      this.object = object;
+      this.name = name;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+        return visitor.visitGetExpression(this);
+    }
+
+    final Expression object;
+    final Token name;
+  }
   static class Grouping extends Expression {
     Grouping(Expression expression) {
       this.expression = expression;
@@ -98,6 +114,22 @@ abstract class Expression {
     final Expression left;
     final Token operator;
     final Expression right;
+  }
+  static class Set extends Expression {
+    Set(Expression object, Token name, Expression value) {
+      this.object = object;
+      this.name = name;
+      this.value = value;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+        return visitor.visitSetExpression(this);
+    }
+
+    final Expression object;
+    final Token name;
+    final Expression value;
   }
   static class Unary extends Expression {
     Unary(Token operator, Expression right) {

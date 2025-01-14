@@ -222,6 +222,10 @@ class Parser {
         return statements;
     }
 
+    // Handle variable and property assignment by evaluating expressions normally
+    // but turning them into assignment nodes when an equals-sign (=) is encountered.
+    // If you don't do this, AFAIK, you'd have to first see if an equals sign exists and
+    // then create an assignment node and evaluate the left and right expressions.
     private Expression assignment() {
         Expression expr = or();
 
@@ -232,6 +236,9 @@ class Parser {
             if (expr instanceof Expression.Variable) {
                 Token name = ((Expression.Variable)expr).name;
                 return new Expression.Assign(name, value);
+            } else if (expr instanceof Expression.Get) {
+                Expression.Get get = (Expression.Get)expr;
+                return new Expression.Set(get.object, get.name, value);
             }
 
             error(equals, "Invalid assignment target.");
@@ -345,6 +352,9 @@ class Parser {
         while (true) {
             if (match(LEFT_PAREN)) {
                 expr = finishCall(expr);
+            } else if (match(DOT)) {
+                Token name = consume(IDENTIFIER, "Expect property name after '.'.");
+                expr = new Expression.Get(expr, name);
             } else {
                 break;
             }
