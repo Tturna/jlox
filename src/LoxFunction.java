@@ -5,10 +5,12 @@ import java.util.List;
 class LoxFunction implements LoxCallable {
     private final Statement.Function declaration;
     private final Environment closure;
+    private final boolean isInitializer;
 
-    LoxFunction(Statement.Function declaration, Environment closure) {
+    LoxFunction(Statement.Function declaration, Environment closure, boolean isInitializer) {
         this.declaration = declaration;
         this.closure = closure;
+        this.isInitializer = isInitializer;
     }
 
     // Yap: How does the "this" keyword work and wtf are all these environments?
@@ -44,7 +46,7 @@ class LoxFunction implements LoxCallable {
     LoxFunction bind(LoxInstance instance) {
         Environment environment = new Environment(closure);
         environment.define("this", instance);
-        return new LoxFunction(declaration, environment);
+        return new LoxFunction(declaration, environment, isInitializer);
     }
 
     @Override
@@ -68,8 +70,13 @@ class LoxFunction implements LoxCallable {
         try {
             interpreter.executeBlock(declaration.body, environment);
         } catch (Return returnValue) {
+            if (isInitializer) return closure.getAt(0, "this");
+
             return returnValue.value;
         }
+
+        if (isInitializer) return closure.getAt(0, "this");
+
         return null;
     }
 }

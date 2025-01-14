@@ -200,7 +200,8 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
 
         Map<String, LoxFunction> methods = new HashMap<>();
         for (Statement.Function method : stmt.methods) {
-            LoxFunction function = new LoxFunction(method, environment);
+            boolean isInitializer = method.name.lexeme.equals("init");
+            LoxFunction function = new LoxFunction(method, environment, isInitializer);
             methods.put(method.name.lexeme, function);
         }
 
@@ -217,7 +218,7 @@ class Interpreter implements Expression.Visitor<Object>, Statement.Visitor<Void>
 
     @Override
     public Void visitFunctionStatement(Statement.Function stmt) {
-        LoxFunction function = new LoxFunction(stmt, environment);
+        LoxFunction function = new LoxFunction(stmt, environment, false);
         environment.define(stmt.name.lexeme, function);
         return null;
     }

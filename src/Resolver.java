@@ -21,6 +21,7 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
     private enum FunctionType {
         NONE,
         FUNCTION,
+        INITIALIZER, // used to check if the user tries to return a value from a constructor
         METHOD
     }
 
@@ -117,6 +118,11 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
 
         for (Statement.Function method : stmt.methods) {
             FunctionType declaration = FunctionType.METHOD;
+
+            if (method.name.lexeme.equals("init")) {
+                declaration = FunctionType.INITIALIZER;
+            }
+
             resolveFunction(method, declaration);
         }
 
@@ -162,6 +168,10 @@ class Resolver implements Expression.Visitor<Void>, Statement.Visitor<Void> {
         }
 
         if (stmt.value != null) {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                Lox.error(stmt.keyword, "Can't return a value from an initializer.");
+            }
+
             resolve(stmt.value);
         }
 
