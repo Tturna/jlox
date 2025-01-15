@@ -1,0 +1,21 @@
+class A {
+    init() {
+        this.value = "hello";
+    }
+
+    getValue() {
+        return this.value;
+    }
+}
+
+class B < A {
+    init() {
+        super.init();
+    }
+}
+
+var a = A();
+print(a.getValue());
+
+var b = B();
+print(b.getValue());

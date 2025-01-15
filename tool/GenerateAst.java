@@ -25,6 +25,7 @@ public class GenerateAst {
             "Literal  : Object value",
             "Logical  : Expression left, Token operator, Expression right",
             "Set      : Expression object, Token name, Expression value", // property assignment
+            "Super    : Token keyword, Token method",
             "This     : Token keyword",
             "Unary    : Token operator, Expression right",
             "Variable : Token name"
@@ -32,7 +33,8 @@ public class GenerateAst {
 
         defineAst(outDir, "Statement", Arrays.asList(
             "Block   : List<Statement> statements",
-            "Class   : Token name, List<Statement.Function> methods",
+            // Figure out why the superclass is stored as a Variable
+            "Class   : Token name, Expression.Variable superclass, List<Statement.Function> methods",
             "Expr    : Expression expression",
             "Function: Token name, List<Token> params, List<Statement> body",
             "If      : Expression condition, Statement thenBranch, Statement elseBranch",
